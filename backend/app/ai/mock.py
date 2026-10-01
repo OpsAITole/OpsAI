@@ -205,7 +205,7 @@ class MockAIProvider(AIProvider):
 
         next_best = (
             "Reúne evidencia de confirmación en monitorización y con quien reportó el incidente antes de cualquier remediación; "
-            "empieza por las comprobaciones de solo lectura de recommended_steps."
+            "empieza por las comprobaciones de solo lectura de los pasos recomendados."
         )
 
         return IncidentAnalysisResult(
