@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0b1220;
+  --foreground: #e8eef7;
+  --surface: #121a2b;
+  --accent: #3dd6c6;
+  --muted: #8fa3bf;
+  --danger: #f07178;
+  --ok: #7fd99a;
+}
+
+body {
+  color: var(--foreground);
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(61, 214, 198, 0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(80, 120, 220, 0.16), transparent 50%),
+    var(--background);
+  font-family: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  min-height: 100vh;
+}
