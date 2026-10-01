@@ -64,6 +64,35 @@ export type IncidentTimelineEvent = {
 
 export type IncidentDetail = Incident & {
   timeline: IncidentTimelineEvent[];
+  latest_analysis?: IncidentAnalysis | null;
+};
+
+export type AnalysisClassification = {
+  category: string;
+  severity: string;
+  priority: string;
+};
+
+export type IncidentAnalysisResult = {
+  summary: string;
+  classification: AnalysisClassification;
+  symptoms: string[];
+  possible_causes: string[];
+  evidence: string[];
+  recommended_steps: string[];
+  similar_incidents: string[];
+  confidence: number;
+  next_best_action: string;
+  warnings: string[];
+};
+
+export type IncidentAnalysis = {
+  id: string;
+  incident_id: string;
+  provider: string;
+  created_at: string;
+  created_by: string | null;
+  analysis: IncidentAnalysisResult;
 };
 
 export type IncidentListResponse = {
@@ -299,4 +328,16 @@ export async function updateIncident(id: string, input: IncidentUpdateInput): Pr
 export async function deleteIncident(id: string): Promise<void> {
   const response = await authFetch(`/api/v1/incidents/${id}`, { method: "DELETE" });
   if (!response.ok) throw new Error(await parseError(response));
+}
+
+export async function analyzeIncident(id: string): Promise<IncidentAnalysis> {
+  const response = await authFetch(`/api/v1/incidents/${id}/analyze`, { method: "POST" });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json() as Promise<IncidentAnalysis>;
+}
+
+export async function getIncidentAnalysis(id: string): Promise<IncidentAnalysis> {
+  const response = await authFetch(`/api/v1/incidents/${id}/analysis`);
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json() as Promise<IncidentAnalysis>;
 }

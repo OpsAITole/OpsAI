@@ -32,7 +32,7 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(
     title="OpsAI API",
     description="Intelligent IT operations assistant (assistance-only MVP).",
-    version="0.3.0",
+    version="0.4.0",
     lifespan=lifespan,
 )
 

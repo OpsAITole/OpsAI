@@ -5,6 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
 
+from app.ai.schemas import AnalysisClassification, IncidentAnalysisResult
 from app.models import (
     IncidentCategory,
     IncidentPriority,
@@ -13,11 +14,35 @@ from app.models import (
     UserRole,
 )
 
+__all__ = [
+    "AnalysisClassification",
+    "IncidentAnalysisResult",
+    "IncidentAnalysisRead",
+    "IncidentCategory",
+    "IncidentCreate",
+    "IncidentDetail",
+    "IncidentListResponse",
+    "IncidentPriority",
+    "IncidentRead",
+    "IncidentSeverity",
+    "IncidentStatus",
+    "IncidentTimelineEvent",
+    "IncidentUpdate",
+    "MessageResponse",
+    "OAuthProviderStub",
+    "StatusResponse",
+    "TokenResponse",
+    "UserCreate",
+    "UserLogin",
+    "UserRead",
+    "UserRole",
+]
+
 
 class StatusResponse(BaseModel):
     service: str = "OpsAI API"
     status: str = "online"
-    version: str = "0.3.0"
+    version: str = "0.4.0"
     environment: str
 
 
@@ -118,5 +143,20 @@ class IncidentTimelineEvent(BaseModel):
     at: datetime
 
 
+# --- AI analysis (Phase 4) ---
+
+
+class IncidentAnalysisRead(BaseModel):
+    id: UUID
+    incident_id: UUID
+    provider: str
+    created_at: datetime
+    created_by: UUID | None = None
+    analysis: IncidentAnalysisResult
+
+    model_config = {"from_attributes": True}
+
+
 class IncidentDetail(IncidentRead):
     timeline: list[IncidentTimelineEvent] = []
+    latest_analysis: IncidentAnalysisRead | None = None

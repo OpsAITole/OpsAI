@@ -14,6 +14,7 @@ from app.models import (
     IncidentStatus,
     User,
 )
+from app.repositories import analyses as analyses_repo
 from app.repositories import incidents as incidents_repo
 from app.schemas import (
     IncidentCreate,
@@ -50,8 +51,8 @@ def to_read(incident: Incident) -> IncidentRead:
     )
 
 
-def build_timeline(incident: Incident) -> list[IncidentTimelineEvent]:
-    """Minimal stub timeline from create/update timestamps (full AI timeline in Phase 4)."""
+def build_timeline(incident: Incident, db: Session | None = None) -> list[IncidentTimelineEvent]:
+    """Timeline from create/update/resolved plus saved AI analysis events."""
     events = [
         IncidentTimelineEvent(
             id=f"{incident.id}-created",
@@ -78,12 +79,41 @@ def build_timeline(incident: Incident) -> list[IncidentTimelineEvent]:
                 at=incident.resolved_at,
             )
         )
+
+    if db is not None:
+        for analysis in analyses_repo.list_for_incident(db, incident.id):
+            conf_pct = int(round(analysis.confidence * 100))
+            events.append(
+                IncidentTimelineEvent(
+                    id=str(analysis.id),
+                    type="analyzed",
+                    message=(
+                        f"AI analysis ({analysis.provider}) saved — "
+                        f"confidence {conf_pct}%. Assistance only; no production changes executed."
+                    ),
+                    at=analysis.created_at,
+                )
+            )
+
+    events.sort(key=lambda e: e.at)
     return events
 
 
-def to_detail(incident: Incident) -> IncidentDetail:
+def to_detail(incident: Incident, db: Session | None = None) -> IncidentDetail:
+    # Lazy import avoids circular dependency with diagnosis service.
+    from app.services import diagnosis as diagnosis_service
+
     base = to_read(incident)
-    return IncidentDetail(**base.model_dump(), timeline=build_timeline(incident))
+    latest = None
+    if db is not None:
+        row = analyses_repo.get_latest_for_incident(db, incident.id)
+        if row is not None:
+            latest = diagnosis_service.to_read(row)
+    return IncidentDetail(
+        **base.model_dump(),
+        timeline=build_timeline(incident, db),
+        latest_analysis=latest,
+    )
 
 
 def create_incident(db: Session, payload: IncidentCreate, user: User) -> Incident:

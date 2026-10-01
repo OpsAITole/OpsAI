@@ -3,11 +3,17 @@
 import enum
 import uuid
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, Uuid, func
+from sqlalchemy import DateTime, Enum, Float, ForeignKey, String, Text, Uuid, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import JSON
 
 from app.core.database import Base
+
+# JSONB on Postgres; plain JSON elsewhere (e.g. SQLite unit tests)
+JSONType = JSON().with_variant(JSONB(), "postgresql")
 
 
 class UserRole(str, enum.Enum):
@@ -72,6 +78,9 @@ class User(Base):
     created_incidents: Mapped[list["Incident"]] = relationship(
         "Incident", back_populates="creator", foreign_keys="Incident.created_by_id"
     )
+    analyses: Mapped[list["IncidentAnalysis"]] = relationship(
+        "IncidentAnalysis", back_populates="creator", foreign_keys="IncidentAnalysis.created_by_id"
+    )
 
 
 class Incident(Base):
@@ -114,4 +123,35 @@ class Incident(Base):
 
     creator: Mapped[User] = relationship(
         "User", back_populates="created_incidents", foreign_keys=[created_by_id]
+    )
+    analyses: Mapped[list["IncidentAnalysis"]] = relationship(
+        "IncidentAnalysis",
+        back_populates="incident",
+        cascade="all, delete-orphan",
+        order_by="IncidentAnalysis.created_at",
+    )
+
+
+class IncidentAnalysis(Base):
+    """Persisted AI diagnosis linked to an incident (assistance-only)."""
+
+    __tablename__ = "incident_analyses"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    incident_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), ForeignKey("incidents.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    provider: Mapped[str] = mapped_column(String(64), nullable=False, default="mock")
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    confidence: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    next_best_action: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    result_json: Mapped[dict[str, Any]] = mapped_column(JSONType, nullable=False)
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True), ForeignKey("users.id"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    incident: Mapped[Incident] = relationship("Incident", back_populates="analyses")
+    creator: Mapped[User | None] = relationship(
+        "User", back_populates="analyses", foreign_keys=[created_by_id]
     )

@@ -1,10 +1,10 @@
-"""Incident CRUD routes — Phase 3."""
+"""Incident CRUD + AI analysis routes."""
 
 from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -17,6 +17,7 @@ from app.models import (
     UserRole,
 )
 from app.schemas import (
+    IncidentAnalysisRead,
     IncidentCreate,
     IncidentDetail,
     IncidentListResponse,
@@ -24,6 +25,7 @@ from app.schemas import (
     IncidentUpdate,
     MessageResponse,
 )
+from app.services import diagnosis as diagnosis_service
 from app.services import incidents as incidents_service
 
 router = APIRouter()
@@ -83,7 +85,7 @@ def get_incident(
     db: Annotated[Session, Depends(get_db)],
 ) -> IncidentDetail:
     incident = incidents_service.get_incident(db, incident_id)
-    return incidents_service.to_detail(incident)
+    return incidents_service.to_detail(incident, db)
 
 
 @router.put("/{incident_id}", response_model=IncidentRead)
@@ -109,11 +111,23 @@ def delete_incident(
 
 @router.post(
     "/{incident_id}/analyze",
-    status_code=status.HTTP_501_NOT_IMPLEMENTED,
+    response_model=IncidentAnalysisRead,
+    status_code=status.HTTP_201_CREATED,
 )
-def analyze_incident(incident_id: UUID, _user: CurrentUser) -> None:
-    """AI analysis arrives in Phase 4 — stub stays 501."""
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail=f"AI analysis for incident {incident_id} is not implemented yet (Phase 4)",
-    )
+def analyze_incident(
+    incident_id: UUID,
+    user: WriteUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> IncidentAnalysisRead:
+    """Run assistance-only AI diagnosis (TECHNICIAN/ADMIN)."""
+    return diagnosis_service.analyze_incident(db, incident_id, user)
+
+
+@router.get("/{incident_id}/analysis", response_model=IncidentAnalysisRead)
+def get_latest_analysis(
+    incident_id: UUID,
+    _user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> IncidentAnalysisRead:
+    """Return the latest saved analysis for an incident."""
+    return diagnosis_service.get_latest_analysis(db, incident_id)

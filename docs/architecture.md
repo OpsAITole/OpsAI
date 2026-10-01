@@ -29,7 +29,14 @@ Fields: `id`, `ticket_number`, `title`, `description`, `status`, `priority`, `se
 - Categories: `NETWORK`, `WINDOWS`, `LINUX`, `DATABASE`, `APPLICATION`, `SECURITY`, `VPN`, `DNS`, `CLOUD`, `HARDWARE`, `OTHER`
 - Ticket numbers: `INC-0001`, …
 - RBAC: all authenticated roles can read; `TECHNICIAN` / `ADMIN` can write
-- `POST /api/v1/incidents/{id}/analyze` stays `501` until Phase 4
+
+## AI diagnosis (Phase 4)
+
+- `AIProvider` interface with `analyze_incident` (+ thin stubs for summary/steps/report)
+- Switch via `AI_PROVIDER`: `mock` (default) | `openai` | `ollama`
+- `DiagnosisService` builds context + similar incidents (category/service/keywords), calls provider, validates with Pydantic, persists `incident_analyses`
+- `POST /api/v1/incidents/{id}/analyze` — TECHNICIAN/ADMIN; `GET .../analysis` — latest saved
+- Assistance-only: prompts forbid inventing facts and claim no production execution
 
 ## Endpoints
 
@@ -44,7 +51,9 @@ Fields: `id`, `ticket_number`, `title`, `description`, `status`, `priority`, `se
 | `GET /api/v1/auth/me` | Current user |
 | `GET/POST /api/v1/incidents` | List / create |
 | `GET/PUT/DELETE /api/v1/incidents/{id}` | Read / update / delete |
+| `POST /api/v1/incidents/{id}/analyze` | Run AI diagnosis |
+| `GET /api/v1/incidents/{id}/analysis` | Latest saved analysis |
 
 ## Roadmap (summary)
 
-1 Foundation → 2 Auth → 3 Incidents CRUD → 4 Observability intake → 5 AI adapters → 6 RAG → 7 Analysis assistant → 8 Operator agent (approval-gated) → 9 Prometheus/Grafana → 10 Billing/tenancy → 11 Hardening → 12 Kubernetes.
+1 Foundation → 2 Auth → 3 Incidents CRUD → 4 AI diagnosis → 5 Observability / RAG → 6 Operator agent (approval-gated) → 7 Prometheus/Grafana → 8 Billing/tenancy → 9 Hardening → 10 Kubernetes.

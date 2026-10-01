@@ -181,7 +181,10 @@ def test_technician_bootstrap_crud(client: TestClient) -> None:
     assert updated.json()["status"] == "WAITING"
 
 
-def test_analyze_stub_returns_501(client: TestClient) -> None:
+def test_analyze_endpoint_is_live(client: TestClient) -> None:
+    from app.ai import get_ai_provider
+
+    get_ai_provider.cache_clear()
     token = _register_and_login(
         client, email="admin2@example.com", name="Admin2", role="ADMIN"
     )
@@ -194,7 +197,8 @@ def test_analyze_stub_returns_501(client: TestClient) -> None:
     analyze = client.post(
         f"/api/v1/incidents/{incident_id}/analyze", headers=_auth(token)
     )
-    assert analyze.status_code == 501
+    assert analyze.status_code == 201, analyze.text
+    assert analyze.json()["analysis"]["summary"]
 
 
 def test_sort_and_priority_filter(client: TestClient) -> None:

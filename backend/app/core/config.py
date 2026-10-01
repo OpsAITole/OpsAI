@@ -17,10 +17,11 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
 
-    # Placeholders for later phases — unused in Phase 1
-    ai_provider: str = "none"
+    # AI providers — switch via AI_PROVIDER without rewriting app code
+    ai_provider: str = "mock"
     ai_api_key: str = ""
     ai_model: str = ""
+    ai_base_url: str = ""
 
     @property
     def cors_origins_list(self) -> list[str]:

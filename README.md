@@ -2,7 +2,7 @@
 
 Intelligent IT operations assistant. The MVP is **assistance-only**: it can suggest actions, but it never auto-executes production changes.
 
-Phase 3 (Incidents) adds full incident CRUD, ticket numbers, RBAC, and an operator UI with list / create / detail views.
+Phase 4 (AI) adds decoupled AI providers, structured incident diagnosis, persistence, and an **Analyze with AI** control on the incident detail page.
 
 ## Quick start
 
@@ -25,7 +25,7 @@ docker compose up --build
 ## Stack
 
 - **frontend/** — Next.js (TypeScript, Tailwind) with SaaS shell (Dashboard, Incidents, Settings)
-- **backend/** — FastAPI + Pydantic + SQLAlchemy (layered: `api`, `core`, `models`, `schemas`, `services`, `repositories`)
+- **backend/** — FastAPI + Pydantic + SQLAlchemy (layered: `api`, `core`, `models`, `schemas`, `services`, `repositories`, `ai`)
 - **postgres** — PostgreSQL 16 via Compose
 - **docs/architecture.md** — architecture notes
 
@@ -36,12 +36,13 @@ Copy `.env.example` to `.env`. Important keys:
 - `DATABASE_URL`, `POSTGRES_*`
 - `JWT_SECRET` (required for auth)
 - `CORS_ORIGINS` (default includes `http://localhost:3000`)
-- `AI_PROVIDER` / `AI_API_KEY` / `AI_MODEL` (placeholders — unused until later phases)
+- `AI_PROVIDER` — `mock` (default) | `openai` | `ollama`
+- `AI_API_KEY` / `AI_MODEL` / `AI_BASE_URL` — required for real providers; unused with `mock`
 - `NEXT_PUBLIC_API_URL` (browser URL for the API, default `http://localhost:8000`)
 
 Do not commit real secrets.
 
-## Auth & incidents (smoke)
+## Auth, incidents & AI (smoke)
 
 ```bash
 # Register first user as ADMIN (bootstrap)
@@ -55,15 +56,21 @@ TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
   -d '{"email":"admin@example.com","password":"password123"}' | python3 -c 'import sys,json; print(json.load(sys.stdin)["access_token"])')
 
 # Create incident
-curl -s -X POST http://localhost:8000/api/v1/incidents \
+INC=$(curl -s -X POST http://localhost:8000/api/v1/incidents \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"title":"VPN down","description":"Users cannot connect","category":"VPN","priority":"HIGH","affected_service":"vpn-gw","affected_system":"edge"}'
+  -d '{"title":"VPN down","description":"Users cannot connect","category":"VPN","priority":"HIGH","affected_service":"vpn-gw","affected_system":"edge"}')
+ID=$(echo "$INC" | python3 -c 'import sys,json; print(json.load(sys.stdin)["id"])')
 
-# List
-curl -s http://localhost:8000/api/v1/incidents -H "Authorization: Bearer $TOKEN"
+# Analyze with mock AI (TECHNICIAN/ADMIN)
+curl -s -X POST "http://localhost:8000/api/v1/incidents/$ID/analyze" \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+
+# Latest analysis
+curl -s "http://localhost:8000/api/v1/incidents/$ID/analysis" \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
 ```
 
-Open http://localhost:3000 — sign in, then use **Incidents** in the sidebar.
+Open http://localhost:3000 — sign in, open an incident, click **Analyze with AI**.
 
 ## Tests
 
@@ -73,6 +80,6 @@ cd backend && python -m pytest -q
 
 ## Intentionally deferred
 
-AI analyze (Phase 4+), OAuth providers, RAG, logs upload, agent, Prometheus, Grafana, billing, Kubernetes.
+OAuth providers, RAG / pgvector, logs upload, agent auto-execution, Prometheus, Grafana, billing, Kubernetes.
 
-If you previously ran Phase 1/2 Compose volumes and see schema errors, reset with `docker compose down -v` then `up --build` again.
+If you previously ran older Compose volumes and see schema errors, reset with `docker compose down -v` then `up --build` again.

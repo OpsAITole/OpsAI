@@ -1,25 +1,36 @@
-"""AI provider stubs — no behavior in Phase 1."""
+"""AI package — provider factory switched by AI_PROVIDER env."""
 
-from abc import ABC, abstractmethod
-from typing import Any
+from functools import lru_cache
+
+from app.ai.mock import MockAIProvider
+from app.ai.openai_provider import AIProviderError, OllamaProvider, OpenAIProvider
+from app.ai.provider import AIProvider
+from app.ai.schemas import AnalysisClassification, IncidentAnalysisResult
+from app.core.config import settings
+
+__all__ = [
+    "AIProvider",
+    "AIProviderError",
+    "AnalysisClassification",
+    "IncidentAnalysisResult",
+    "MockAIProvider",
+    "OllamaProvider",
+    "OpenAIProvider",
+    "get_ai_provider",
+]
 
 
-class AIProvider(ABC):
-    """Interface for future LLM providers (OpenAI, Anthropic, etc.)."""
-
-    @abstractmethod
-    async def complete(self, prompt: str, **kwargs: Any) -> str:
-        """Return a model completion. Not implemented in Phase 1."""
-        raise NotImplementedError
-
-
-class NoOpAIProvider(AIProvider):
-    """Placeholder provider that refuses to invent AI behavior."""
-
-    async def complete(self, prompt: str, **kwargs: Any) -> str:
-        raise NotImplementedError("AI providers are not enabled in Phase 1 (Foundation).")
-
-
+@lru_cache
 def get_ai_provider() -> AIProvider:
-    """Factory — always returns NoOp until Phase 5+."""
-    return NoOpAIProvider()
+    """
+    Factory — select provider via AI_PROVIDER without rewriting app code.
+    Supported: mock (default), openai, ollama.
+    """
+    name = (settings.ai_provider or "mock").strip().lower()
+    if name in {"", "none", "mock"}:
+        return MockAIProvider()
+    if name == "openai":
+        return OpenAIProvider()
+    if name == "ollama":
+        return OllamaProvider()
+    raise ValueError(f"Unsupported AI_PROVIDER={settings.ai_provider!r}; use mock|openai|ollama")
