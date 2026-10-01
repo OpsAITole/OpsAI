@@ -20,6 +20,17 @@ OpsAI is an intelligent IT operations assistant. The MVP is **assistance-only** 
 
 User model fields: `id`, `email`, `password_hash`, `name`, `role`, `created_at`, `updated_at`.
 
+## Incidents (Phase 3)
+
+Fields: `id`, `ticket_number`, `title`, `description`, `status`, `priority`, `severity`, `category`, `affected_service`, `affected_system`, `created_by`, `created_at`, `updated_at`, `resolved_at`.
+
+- Status: `NEW`, `INVESTIGATING`, `WAITING`, `RESOLVED`, `CLOSED`
+- Priority / severity: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`
+- Categories: `NETWORK`, `WINDOWS`, `LINUX`, `DATABASE`, `APPLICATION`, `SECURITY`, `VPN`, `DNS`, `CLOUD`, `HARDWARE`, `OTHER`
+- Ticket numbers: `INC-0001`, …
+- RBAC: all authenticated roles can read; `TECHNICIAN` / `ADMIN` can write
+- `POST /api/v1/incidents/{id}/analyze` stays `501` until Phase 4
+
 ## Endpoints
 
 | Path | Purpose |
@@ -31,7 +42,8 @@ User model fields: `id`, `email`, `password_hash`, `name`, `role`, `created_at`,
 | `POST /api/v1/auth/login` | Issue JWT |
 | `POST /api/v1/auth/logout` | Acknowledge logout |
 | `GET /api/v1/auth/me` | Current user |
-| `GET /api/v1/incidents*` | Protected stubs (Phase 3) |
+| `GET/POST /api/v1/incidents` | List / create |
+| `GET/PUT/DELETE /api/v1/incidents/{id}` | Read / update / delete |
 
 ## Roadmap (summary)
 

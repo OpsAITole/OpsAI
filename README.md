@@ -2,7 +2,7 @@
 
 Intelligent IT operations assistant. The MVP is **assistance-only**: it can suggest actions, but it never auto-executes production changes.
 
-Phase 2 (Authentication) adds register/login/logout, JWT sessions, password hashing, `GET /api/v1/auth/me`, and RBAC-ready role guards (`ADMIN`, `TECHNICIAN`, `VIEWER`).
+Phase 3 (Incidents) adds full incident CRUD, ticket numbers, RBAC, and an operator UI with list / create / detail views.
 
 ## Quick start
 
@@ -16,66 +16,63 @@ docker compose up --build
 | Surface   | URL |
 |-----------|-----|
 | Frontend  | http://localhost:3000 |
-| Login     | http://localhost:3000/login |
-| Register  | http://localhost:3000/register |
 | Backend   | http://localhost:8000 |
 | API docs  | http://localhost:8000/docs |
 | Health    | http://localhost:8000/health |
 | Readiness | http://localhost:8000/readiness |
 | Status    | http://localhost:8000/api/v1/status |
 
-## Auth API
-
-| Method | Path | Auth |
-|--------|------|------|
-| `POST` | `/api/v1/auth/register` | public |
-| `POST` | `/api/v1/auth/login` | public |
-| `POST` | `/api/v1/auth/logout` | Bearer JWT |
-| `GET` | `/api/v1/auth/me` | Bearer JWT |
-| `GET` | `/api/v1/auth/oauth/{provider}` | stub `501` |
-| `GET` | `/api/v1/auth/oauth/{provider}/callback` | stub `501` |
-
-User fields: `id`, `email`, `password_hash`, `name`, `role`, `created_at`, `updated_at`.
-
 ## Stack
 
-- **frontend/** — Next.js (TypeScript, Tailwind)
-- **backend/** — FastAPI + Pydantic + SQLAlchemy (layered: `api`, `core`, `models`, `schemas`, `services`, `repositories`, stub `ai` / `rag`)
+- **frontend/** — Next.js (TypeScript, Tailwind) with SaaS shell (Dashboard, Incidents, Settings)
+- **backend/** — FastAPI + Pydantic + SQLAlchemy (layered: `api`, `core`, `models`, `schemas`, `services`, `repositories`)
 - **postgres** — PostgreSQL 16 via Compose
-- **docs/architecture.md** — foundation + auth notes
+- **docs/architecture.md** — architecture notes
 
 ## Environment
 
 Copy `.env.example` to `.env`. Important keys:
 
 - `DATABASE_URL`, `POSTGRES_*`
-- `JWT_SECRET` (required for signing tokens)
-- `CORS_ORIGINS` (default `http://localhost:3000`)
-- `AI_PROVIDER` / `AI_API_KEY` / `AI_MODEL` (placeholders — unused)
+- `JWT_SECRET` (required for auth)
+- `CORS_ORIGINS` (default includes `http://localhost:3000`)
+- `AI_PROVIDER` / `AI_API_KEY` / `AI_MODEL` (placeholders — unused until later phases)
 - `NEXT_PUBLIC_API_URL` (browser URL for the API, default `http://localhost:8000`)
 
 Do not commit real secrets.
 
+## Auth & incidents (smoke)
+
+```bash
+# Register first user as ADMIN (bootstrap)
+curl -s -X POST http://localhost:8000/api/v1/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"password123","name":"Admin","role":"ADMIN"}'
+
+# Login
+TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"password123"}' | python3 -c 'import sys,json; print(json.load(sys.stdin)["access_token"])')
+
+# Create incident
+curl -s -X POST http://localhost:8000/api/v1/incidents \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"title":"VPN down","description":"Users cannot connect","category":"VPN","priority":"HIGH","affected_service":"vpn-gw","affected_system":"edge"}'
+
+# List
+curl -s http://localhost:8000/api/v1/incidents -H "Authorization: Bearer $TOKEN"
+```
+
+Open http://localhost:3000 — sign in, then use **Incidents** in the sidebar.
+
 ## Tests
 
 ```bash
-cd backend
-pip install -r requirements.txt
-pytest -q
-```
-
-## Verify
-
-```bash
-curl -s http://localhost:8000/health
-curl -s -X POST http://localhost:8000/api/v1/auth/register \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"ops@example.com","password":"password123","name":"Ops"}'
-curl -s -X POST http://localhost:8000/api/v1/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"ops@example.com","password":"password123"}'
+cd backend && python -m pytest -q
 ```
 
 ## Intentionally deferred
 
-Incidents CRUD, IA analysis, RAG, OAuth (stubs only), logs upload, agent, Prometheus, Grafana, billing, Kubernetes.
+AI analyze (Phase 4+), OAuth providers, RAG, logs upload, agent, Prometheus, Grafana, billing, Kubernetes.
+
+If you previously ran Phase 1/2 Compose volumes and see schema errors, reset with `docker compose down -v` then `up --build` again.

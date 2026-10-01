@@ -1,5 +1,5 @@
 """Repository package exports."""
 
-from app.repositories import users
+from app.repositories import incidents, users
 
-__all__ = ["users"]
+__all__ = ["incidents", "users"]

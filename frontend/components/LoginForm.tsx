@@ -20,7 +20,7 @@ export function LoginForm() {
     try {
       const result = await loginUser({ email, password });
       storeSession(result.access_token, result.user);
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");

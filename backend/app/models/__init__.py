@@ -17,17 +17,39 @@ class UserRole(str, enum.Enum):
 
 
 class IncidentStatus(str, enum.Enum):
-    open = "open"
-    investigating = "investigating"
-    resolved = "resolved"
-    closed = "closed"
+    NEW = "NEW"
+    INVESTIGATING = "INVESTIGATING"
+    WAITING = "WAITING"
+    RESOLVED = "RESOLVED"
+    CLOSED = "CLOSED"
+
+
+class IncidentPriority(str, enum.Enum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
 
 
 class IncidentSeverity(str, enum.Enum):
-    low = "low"
-    medium = "medium"
-    high = "high"
-    critical = "critical"
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+
+class IncidentCategory(str, enum.Enum):
+    NETWORK = "NETWORK"
+    WINDOWS = "WINDOWS"
+    LINUX = "LINUX"
+    DATABASE = "DATABASE"
+    APPLICATION = "APPLICATION"
+    SECURITY = "SECURITY"
+    VPN = "VPN"
+    DNS = "DNS"
+    CLOUD = "CLOUD"
+    HARDWARE = "HARDWARE"
+    OTHER = "OTHER"
 
 
 class User(Base):
@@ -48,10 +70,7 @@ class User(Base):
     )
 
     created_incidents: Mapped[list["Incident"]] = relationship(
-        "Incident", back_populates="created_by", foreign_keys="Incident.created_by_id"
-    )
-    assigned_incidents: Mapped[list["Incident"]] = relationship(
-        "Incident", back_populates="assigned_to", foreign_keys="Incident.assigned_to_id"
+        "Incident", back_populates="creator", foreign_keys="Incident.created_by_id"
     )
 
 
@@ -59,34 +78,40 @@ class Incident(Base):
     __tablename__ = "incidents"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    ticket_number: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     status: Mapped[IncidentStatus] = mapped_column(
         Enum(IncidentStatus, name="incident_status", native_enum=False, length=32),
-        default=IncidentStatus.open,
+        default=IncidentStatus.NEW,
+        nullable=False,
+    )
+    priority: Mapped[IncidentPriority] = mapped_column(
+        Enum(IncidentPriority, name="incident_priority", native_enum=False, length=32),
+        default=IncidentPriority.MEDIUM,
+        nullable=False,
     )
     severity: Mapped[IncidentSeverity] = mapped_column(
         Enum(IncidentSeverity, name="incident_severity", native_enum=False, length=32),
-        default=IncidentSeverity.medium,
+        default=IncidentSeverity.MEDIUM,
+        nullable=False,
     )
-    source: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    created_by_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid(as_uuid=True), ForeignKey("users.id"), nullable=True
+    category: Mapped[IncidentCategory] = mapped_column(
+        Enum(IncidentCategory, name="incident_category", native_enum=False, length=32),
+        default=IncidentCategory.OTHER,
+        nullable=False,
     )
-    assigned_to_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid(as_uuid=True), ForeignKey("users.id"), nullable=True
+    affected_service: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    affected_system: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_by_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False
     )
-    # Reserved for future AI analysis — unused until later phases
-    ai_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    created_by: Mapped[User | None] = relationship(
+    creator: Mapped[User] = relationship(
         "User", back_populates="created_incidents", foreign_keys=[created_by_id]
-    )
-    assigned_to: Mapped[User | None] = relationship(
-        "User", back_populates="assigned_incidents", foreign_keys=[assigned_to_id]
     )

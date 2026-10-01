@@ -1,52 +1,11 @@
 """Pytest suite for OpsAI authentication."""
 
-from collections.abc import Generator
-
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.orm import Session
 
-from app.core.database import Base, get_db
 from app.core.security import create_access_token, hash_password, verify_password
-from app.main import app
 from app.models import User, UserRole
-
-
-SQLALCHEMY_DATABASE_URL = "sqlite+pysqlite:///:memory:"
-
-
-@pytest.fixture()
-def db_session() -> Generator[Session, None, None]:
-    engine = create_engine(
-        SQLALCHEMY_DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    Base.metadata.create_all(bind=engine)
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
-        engine.dispose()
-
-
-@pytest.fixture()
-def client(db_session: Session) -> Generator[TestClient, None, None]:
-    def _override_get_db() -> Generator[Session, None, None]:
-        try:
-            yield db_session
-        finally:
-            pass
-
-    app.dependency_overrides[get_db] = _override_get_db
-    with TestClient(app) as test_client:
-        yield test_client
-    app.dependency_overrides.clear()
 
 
 def test_hash_and_verify_password() -> None:
@@ -125,7 +84,9 @@ def test_protected_incidents_with_token(client: TestClient) -> None:
     )
     token = login.json()["access_token"]
     response = client.get("/api/v1/incidents", headers={"Authorization": f"Bearer {token}"})
-    assert response.status_code == 501
+    assert response.status_code == 200
+    assert response.json()["items"] == []
+    assert response.json()["total"] == 0
 
 
 def test_oauth_stubs(client: TestClient) -> None:
