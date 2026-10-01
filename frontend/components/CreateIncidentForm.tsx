@@ -13,6 +13,7 @@ import {
   type IncidentCategory,
   type IncidentPriority,
 } from "@/lib/api";
+import { CATEGORY_LABELS, PRIORITY_LABELS } from "@/lib/labels";
 
 export function CreateIncidentForm() {
   const router = useRouter();
@@ -29,7 +30,9 @@ export function CreateIncidentForm() {
   useEffect(() => {
     const user = getStoredUser();
     if (!canWriteIncidents(user)) {
-      setError("Your role is read-only. Ask an ADMIN or TECHNICIAN to create incidents.");
+      setError(
+        "Tu rol es de solo lectura. Pide a un ADMIN o TECHNICIAN que cree los incidentes.",
+      );
       setAllowed(false);
       return;
     }
@@ -53,7 +56,7 @@ export function CreateIncidentForm() {
       router.push(`/incidents/${incident.id}`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create incident");
+      setError(err instanceof Error ? err.message : "No se pudo crear el incidente");
     } finally {
       setPending(false);
     }
@@ -62,38 +65,39 @@ export function CreateIncidentForm() {
   return (
     <form onSubmit={onSubmit} className="mx-auto max-w-2xl space-y-5">
       <div>
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">New incident</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">Nuevo incidente</p>
         <p className="mt-1 text-sm text-muted">
-          Capture title, impact, and classification. AI analysis comes in a later phase.
+          Captura el título, el impacto y la clasificación. El análisis con IA está disponible en el
+          detalle del ticket.
         </p>
       </div>
 
       <label className="block">
-        <span className="text-[11px] uppercase tracking-[0.14em] text-muted">Title</span>
+        <span className="text-[11px] uppercase tracking-[0.14em] text-muted">Título</span>
         <input
           required
           maxLength={500}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="mt-1.5 w-full rounded-md border border-white/10 bg-background/50 px-3 py-2.5 text-sm outline-none ring-accent/40 focus:ring-2"
-          placeholder="e.g. VPN gateway unreachable"
+          placeholder="p. ej. Pasarela VPN inalcanzable"
         />
       </label>
 
       <label className="block">
-        <span className="text-[11px] uppercase tracking-[0.14em] text-muted">Description</span>
+        <span className="text-[11px] uppercase tracking-[0.14em] text-muted">Descripción</span>
         <textarea
           rows={5}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="mt-1.5 w-full rounded-md border border-white/10 bg-background/50 px-3 py-2.5 text-sm outline-none ring-accent/40 focus:ring-2"
-          placeholder="What happened, who is affected, and any symptoms observed…"
+          placeholder="Qué ha pasado, a quién afecta y qué síntomas se observan…"
         />
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-[11px] uppercase tracking-[0.14em] text-muted">Category</span>
+          <span className="text-[11px] uppercase tracking-[0.14em] text-muted">Categoría</span>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as IncidentCategory)}
@@ -101,13 +105,13 @@ export function CreateIncidentForm() {
           >
             {INCIDENT_CATEGORIES.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {CATEGORY_LABELS[c]}
               </option>
             ))}
           </select>
         </label>
         <label className="block">
-          <span className="text-[11px] uppercase tracking-[0.14em] text-muted">Priority</span>
+          <span className="text-[11px] uppercase tracking-[0.14em] text-muted">Prioridad</span>
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value as IncidentPriority)}
@@ -115,13 +119,13 @@ export function CreateIncidentForm() {
           >
             {INCIDENT_PRIORITIES.map((p) => (
               <option key={p} value={p}>
-                {p}
+                {PRIORITY_LABELS[p]}
               </option>
             ))}
           </select>
         </label>
         <label className="block">
-          <span className="text-[11px] uppercase tracking-[0.14em] text-muted">Affected service</span>
+          <span className="text-[11px] uppercase tracking-[0.14em] text-muted">Servicio afectado</span>
           <input
             value={service}
             onChange={(e) => setService(e.target.value)}
@@ -130,7 +134,7 @@ export function CreateIncidentForm() {
           />
         </label>
         <label className="block">
-          <span className="text-[11px] uppercase tracking-[0.14em] text-muted">Affected system</span>
+          <span className="text-[11px] uppercase tracking-[0.14em] text-muted">Sistema afectado</span>
           <input
             value={system}
             onChange={(e) => setSystem(e.target.value)}
@@ -148,13 +152,13 @@ export function CreateIncidentForm() {
           disabled={pending || !allowed}
           className="rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-background transition hover:brightness-110 disabled:opacity-60"
         >
-          {pending ? "Creating…" : "Create incident"}
+          {pending ? "Creando…" : "Crear incidente"}
         </button>
         <Link
           href="/incidents"
           className="rounded-md border border-white/15 px-4 py-2.5 text-sm transition hover:border-accent/40"
         >
-          Cancel
+          Cancelar
         </Link>
       </div>
     </form>

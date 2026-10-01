@@ -10,23 +10,26 @@ from app.ai.provider import AIProvider
 from app.ai.schemas import AnalysisClassification, IncidentAnalysisResult
 
 _CATEGORY_HINTS = {
-    "VPN": ("vpn", "tunnel", "anyconnect", "ipsec"),
+    "VPN": ("vpn", "tunnel", "túnel", "anyconnect", "ipsec"),
     "DNS": ("dns", "resolver", "nxdomain"),
-    "DATABASE": ("database", "postgres", "mysql", "sql", "db "),
-    "NETWORK": ("network", "latency", "packet", "firewall", "switch"),
+    "DATABASE": ("database", "base de datos", "postgres", "mysql", "sql", "db "),
+    "NETWORK": ("network", "red", "latency", "latencia", "packet", "firewall", "switch"),
     "WINDOWS": ("windows", "wsus", "active directory", "ad ", "gpo"),
     "LINUX": ("linux", "systemd", "kernel", "ssh"),
-    "SECURITY": ("security", "malware", "breach", "phishing", "auth fail"),
-    "CLOUD": ("cloud", "aws", "azure", "gcp", "kubernetes", "k8s"),
-    "HARDWARE": ("hardware", "disk", "raid", "nic", "memory"),
-    "APPLICATION": ("application", "app ", "http 5", "timeout", "deploy"),
+    "SECURITY": ("security", "seguridad", "malware", "breach", "phishing", "auth fail"),
+    "CLOUD": ("cloud", "nube", "aws", "azure", "gcp", "kubernetes", "k8s"),
+    "HARDWARE": ("hardware", "disk", "disco", "raid", "nic", "memory", "memoria"),
+    "APPLICATION": ("application", "aplicación", "app ", "http 5", "timeout", "deploy"),
 }
 
 
-def _extract_block(prompt: str, heading: str) -> str:
-    pattern = rf"## {re.escape(heading)}\n(.*?)(?=\n## |\Z)"
-    match = re.search(pattern, prompt, re.DOTALL | re.IGNORECASE)
-    return match.group(1).strip() if match else prompt
+def _extract_block(prompt: str, *headings: str) -> str:
+    for heading in headings:
+        pattern = rf"## {re.escape(heading)}\n(.*?)(?=\n## |\Z)"
+        match = re.search(pattern, prompt, re.DOTALL | re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+    return prompt
 
 
 def _guess_category(text: str, fallback: str) -> str:
@@ -39,15 +42,42 @@ def _guess_category(text: str, fallback: str) -> str:
 
 def _guess_severity(text: str, fallback: str) -> str:
     lowered = text.lower()
-    if any(w in lowered for w in ("critical", "outage", "down", "unavailable", "p1")):
+    if any(
+        w in lowered
+        for w in ("critical", "crítica", "critica", "outage", "caída", "caida", "down", "unavailable", "indisponible", "p1")
+    ):
         return "CRITICAL"
-    if any(w in lowered for w in ("high", "degraded", "major", "p2")):
+    if any(w in lowered for w in ("high", "alta", "degraded", "degradado", "major", "grave", "p2")):
         return "HIGH"
-    if any(w in lowered for w in ("low", "minor", "cosmetic")):
+    if any(w in lowered for w in ("low", "baja", "minor", "menor", "cosmetic", "cosmético")):
         return "LOW"
     allowed = {"LOW", "MEDIUM", "HIGH", "CRITICAL"}
     candidate = fallback.upper()
     return candidate if candidate in allowed else "MEDIUM"
+
+
+_FIELD_ALIASES = {
+    "ticket": "ticket",
+    "title": "title",
+    "título": "title",
+    "titulo": "title",
+    "description": "description",
+    "descripción": "description",
+    "descripcion": "description",
+    "category": "category",
+    "categoría": "category",
+    "categoria": "category",
+    "priority": "priority",
+    "prioridad": "priority",
+    "severity": "severity",
+    "severidad": "severity",
+    "affected service": "service",
+    "servicio afectado": "service",
+    "affected system": "system",
+    "sistema afectado": "system",
+    "status": "status",
+    "estado": "status",
+}
 
 
 class MockAIProvider(AIProvider):
@@ -60,8 +90,14 @@ class MockAIProvider(AIProvider):
 
     def analyze_incident(self, prompt: str, **kwargs: Any) -> IncidentAnalysisResult:
         del kwargs  # unused — interface compatibility
-        incident_block = _extract_block(prompt, "Incident context")
-        similar_block = _extract_block(prompt, "Similar incidents (for reference only)")
+        incident_block = _extract_block(
+            prompt, "Contexto del incidente", "Incident context"
+        )
+        similar_block = _extract_block(
+            prompt,
+            "Incidentes similares (solo referencia)",
+            "Similar incidents (for reference only)",
+        )
 
         title = ""
         description = ""
@@ -77,19 +113,20 @@ class MockAIProvider(AIProvider):
             key, value = line.split(":", 1)
             key = key.strip().lower()
             value = value.strip()
-            if key == "ticket":
+            mapped = _FIELD_ALIASES.get(key)
+            if mapped == "ticket":
                 ticket = value
-            elif key == "title":
+            elif mapped == "title":
                 title = value
-            elif key == "description":
+            elif mapped == "description":
                 description = value
-            elif key == "category":
+            elif mapped == "category":
                 category = value
-            elif key == "priority":
+            elif mapped == "priority":
                 priority = value
-            elif key == "severity":
+            elif mapped == "severity":
                 severity = value
-            elif key == "affected service":
+            elif mapped == "service":
                 service = value
 
         blob = f"{title} {description} {category} {service}".strip()
@@ -103,67 +140,72 @@ class MockAIProvider(AIProvider):
 
         symptoms: list[str] = []
         if title:
-            symptoms.append(f"Reported issue: {title}")
+            symptoms.append(f"Incidencia reportada: {title}")
         if description:
             # Keep factual — quote provided description, truncated
             snippet = description if len(description) <= 240 else description[:237] + "..."
-            symptoms.append(f"Operator description: {snippet}")
+            symptoms.append(f"Descripción del operador: {snippet}")
         if service:
-            symptoms.append(f"Affected service named in ticket: {service}")
+            symptoms.append(f"Servicio afectado indicado en el ticket: {service}")
         if not symptoms:
-            symptoms.append("Insufficient detail in the ticket description.")
+            symptoms.append("Detalle insuficiente en la descripción del ticket.")
 
         similar_refs: list[str] = []
-        if similar_block and "none provided" not in similar_block.lower():
+        none_markers = ("none provided", "ninguno", "ninguna")
+        if similar_block and not any(m in similar_block.lower() for m in none_markers):
             for line in similar_block.splitlines():
                 line = line.strip().lstrip("-•").strip()
-                if line and not line.lower().startswith("none"):
+                if line and not line.lower().startswith(("none", "ninguno", "ninguna")):
                     similar_refs.append(line)
                     if len(similar_refs) >= 5:
                         break
 
         evidence: list[str] = [
-            f"Ticket fields provided for {ticket or 'this incident'} (category={category}, "
-            f"priority={priority}, severity={severity})."
+            f"Campos del ticket facilitados para {ticket or 'este incidente'} "
+            f"(categoría={category}, prioridad={priority}, severidad={severity})."
         ]
         if similar_refs:
             evidence.append(
-                f"{len(similar_refs)} similar historical ticket(s) matched by category/service/keywords."
+                f"{len(similar_refs)} ticket(s) histórico(s) similares coinciden por categoría/servicio/palabras clave."
             )
         else:
-            evidence.append("No strongly matching historical tickets were supplied in context.")
+            evidence.append(
+                "No se han facilitado tickets históricos con coincidencia fuerte en el contexto."
+            )
 
         possible_causes = [
-            f"Hypothesis: fault related to {resolved_category.lower()} based on category/keywords in the ticket "
-            "(not confirmed by telemetry — OpsAI has no live execution data).",
-            "Hypothesis: recent change or capacity issue affecting the named service/system "
-            "(verify change calendar and monitoring before acting).",
+            f"Hipótesis: fallo relacionado con {resolved_category.lower()} según la categoría/palabras clave del ticket "
+            "(no confirmado por telemetría — OpsAI no dispone de datos de ejecución en vivo).",
+            "Hipótesis: cambio reciente o problema de capacidad que afecta al servicio/sistema indicado "
+            "(verifica el calendario de cambios y la monitorización antes de actuar).",
         ]
 
         recommended_steps = [
-            "Confirm the symptom with the reporter and note exact error messages / timestamps (read-only).",
-            "Check existing monitoring/dashboards and recent alerts for the affected service — do not restart anything yet.",
-            "Review recent changes (deployments, firewall, DNS, certs) in the change window overlapping the start time.",
-            "If impact is confirmed, escalate per runbook and document findings in the ticket.",
+            "Confirma el síntoma con quien lo reportó y anota mensajes de error / marcas de tiempo exactas (solo lectura).",
+            "Revisa la monitorización/dashboards y alertas recientes del servicio afectado — no reinicies nada todavía.",
+            "Revisa cambios recientes (despliegues, firewall, DNS, certificados) en la ventana que solape con el inicio.",
+            "Si el impacto está confirmado, escala según el runbook y documenta los hallazgos en el ticket.",
         ]
 
         warnings = [
-            "OpsAI assistance only: this analysis does not execute commands or change production systems.",
-            "Do not perform destructive remediation (reboot, wipe, drop, force failover) without change approval.",
+            "OpsAI solo asiste: este análisis no ejecuta comandos ni modifica sistemas de producción.",
+            "No realices remediación destructiva (reinicio, wipe, drop, failover forzado) sin aprobación de cambio.",
         ]
         if confidence < 0.65:
-            warnings.append("Low-to-moderate confidence — treat causes as hypotheses until verified.")
+            warnings.append(
+                "Confianza baja o moderada — trata las causas como hipótesis hasta verificarlas."
+            )
 
         summary = (
-            f"Assistance-only diagnosis for {ticket or 'incident'}: "
-            f"'{title or 'untitled'}' classified as {resolved_category} "
-            f"({resolved_severity} severity). "
-            "Findings are based solely on ticket text and similar incidents supplied in context."
+            f"Diagnóstico solo de asistencia para {ticket or 'el incidente'}: "
+            f"«{title or 'sin título'}» clasificado como {resolved_category} "
+            f"(severidad {resolved_severity}). "
+            "Los hallazgos se basan únicamente en el texto del ticket y en los incidentes similares del contexto."
         )
 
         next_best = (
-            "Gather confirming evidence from monitoring and the reporter before any remediation; "
-            "start with read-only checks listed in recommended_steps."
+            "Reúne evidencia de confirmación en monitorización y con quien reportó el incidente antes de cualquier remediación; "
+            "empieza por las comprobaciones de solo lectura de recommended_steps."
         )
 
         return IncidentAnalysisResult(

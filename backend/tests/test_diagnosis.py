@@ -74,7 +74,7 @@ Affected system: edge
     assert result.next_best_action
     assert result.symptoms
     assert result.recommended_steps
-    assert any("assistance" in w.lower() or "opsai" in w.lower() for w in result.warnings)
+    assert any("asistencia" in w.lower() or "opsai" in w.lower() for w in result.warnings)
     # Deterministic for same prompt
     again = provider.analyze_incident(prompt)
     assert again.confidence == result.confidence
@@ -232,14 +232,16 @@ def test_invalid_ai_output_mapped_to_client_error(client: TestClient) -> None:
 
         def analyze_incident(self, prompt: str, **kwargs):  # noqa: ANN001, ANN003
             del prompt, kwargs
-            raise AIProviderError("AI output failed schema validation", status_code=422)
+            raise AIProviderError(
+                "La salida de la IA no superó la validación del esquema", status_code=422
+            )
 
     with patch("app.services.diagnosis.get_ai_provider", return_value=InvalidProvider()):
         res = client.post(
             f"/api/v1/incidents/{incident['id']}/analyze", headers=_auth(token)
         )
     assert res.status_code == 422
-    assert "validation" in res.json()["detail"].lower()
+    assert "validación" in res.json()["detail"].lower() or "validacion" in res.json()["detail"].lower()
     # No stack dump fields
     assert "traceback" not in res.text.lower()
 
@@ -257,7 +259,7 @@ def test_build_prompt_includes_safety_and_context() -> None:
         affected_system = "vm-12"
 
     prompt = build_analysis_prompt(FakeIncident(), [])  # type: ignore[arg-type]
-    assert "do not invent" in prompt.lower() or "ONLY the incident context" in prompt
+    assert "no inventes" in prompt.lower() or "únicamente" in prompt.lower() or "unicamente" in prompt.lower()
     assert "INC-0009" in prompt
     assert "Disk full" in prompt
-    assert "None provided" in prompt
+    assert "Ninguno" in prompt

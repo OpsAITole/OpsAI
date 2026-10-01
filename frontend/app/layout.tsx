@@ -16,7 +16,7 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "OpsAI",
-  description: "Intelligent IT operations assistant — assistance-only MVP.",
+  description: "Asistente inteligente de operaciones IT — MVP solo de asistencia.",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body className={`${plexSans.variable} ${plexMono.variable} antialiased`}>
         {children}
       </body>

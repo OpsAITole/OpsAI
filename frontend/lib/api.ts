@@ -204,12 +204,12 @@ async function parseError(response: Response): Promise<string> {
   } catch {
     /* ignore */
   }
-  return `Request failed (${response.status})`;
+  return `La solicitud ha fallado (${response.status})`;
 }
 
 async function authFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const access = getStoredToken();
-  if (!access) throw new Error("Not authenticated");
+  if (!access) throw new Error("No autenticado");
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${access}`);
   if (init.body && !headers.has("Content-Type")) {
@@ -224,7 +224,7 @@ export async function fetchApiStatus(): Promise<ApiStatus> {
   });
 
   if (!response.ok) {
-    throw new Error(`Status request failed (${response.status})`);
+    throw new Error(`Error al consultar el estado (${response.status})`);
   }
 
   return response.json() as Promise<ApiStatus>;
@@ -259,7 +259,7 @@ export async function loginUser(input: {
 
 export async function fetchMe(token?: string): Promise<User> {
   const access = token ?? getStoredToken();
-  if (!access) throw new Error("Not authenticated");
+  if (!access) throw new Error("No autenticado");
   const response = await fetch(`${getApiBaseUrl()}/api/v1/auth/me`, {
     headers: { Authorization: `Bearer ${access}` },
     cache: "no-store",

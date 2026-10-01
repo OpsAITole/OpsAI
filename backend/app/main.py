@@ -31,7 +31,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="OpsAI API",
-    description="Intelligent IT operations assistant (assistance-only MVP).",
+    description="Asistente inteligente de operaciones IT (MVP solo de asistencia). Interfaz y mensajes de usuario en español (es-ES).",
     version="0.4.0",
     lifespan=lifespan,
 )
@@ -61,6 +61,6 @@ def readiness() -> dict[str, str]:
     except Exception as exc:  # noqa: BLE001 — surface connectivity failures as 503
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"database unavailable: {exc}",
+            detail=f"base de datos no disponible: {exc}",
         ) from exc
     return {"status": "ready", "database": "ok"}

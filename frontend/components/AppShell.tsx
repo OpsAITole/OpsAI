@@ -12,14 +12,15 @@ import {
   logoutUser,
   type User,
 } from "@/lib/api";
+import { roleLabel } from "@/lib/labels";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard", soon: false },
-  { href: "/incidents", label: "Incidents", soon: false },
-  { href: "/settings", label: "Settings", soon: false },
-  { href: "#", label: "Observability", soon: true },
-  { href: "#", label: "AI Assistant", soon: true },
-  { href: "#", label: "Agent", soon: true },
+  { href: "/dashboard", label: "Panel", soon: false },
+  { href: "/incidents", label: "Incidentes", soon: false },
+  { href: "/settings", label: "Ajustes", soon: false },
+  { href: "#", label: "Observabilidad", soon: true },
+  { href: "#", label: "Asistente IA", soon: true },
+  { href: "#", label: "Agente", soon: true },
 ] as const;
 
 type AppShellProps = {
@@ -79,7 +80,7 @@ export function AppShell({ children, title }: AppShellProps) {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted">
-        Loading workspace…
+        Cargando espacio de trabajo…
       </div>
     );
   }
@@ -96,7 +97,7 @@ export function AppShell({ children, title }: AppShellProps) {
         <div className="border-b border-white/10 px-5 py-5">
           <Link href="/dashboard" className="block">
             <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">OpsAI</p>
-            <p className="mt-1 text-sm text-muted">IT operations assistant</p>
+            <p className="mt-1 text-sm text-muted">Asistente de operaciones IT</p>
           </Link>
         </div>
         <nav className="flex-1 space-y-1 px-3 py-4">
@@ -112,7 +113,7 @@ export function AppShell({ children, title }: AppShellProps) {
                 >
                   {item.label}
                   <span className="font-mono text-[10px] uppercase tracking-wider text-muted/50">
-                    soon
+                    pronto
                   </span>
                 </span>
               );
@@ -136,14 +137,14 @@ export function AppShell({ children, title }: AppShellProps) {
         <div className="border-t border-white/10 px-4 py-4">
           <p className="truncate text-sm font-medium text-foreground">{user.name}</p>
           <p className="truncate text-xs text-muted">
-            {user.email} · {user.role}
+            {user.email} · {roleLabel(user.role)}
           </p>
           <button
             type="button"
             onClick={() => void onLogout()}
             className="mt-3 text-xs text-muted transition hover:text-danger"
           >
-            Log out
+            Cerrar sesión
           </button>
         </div>
       </aside>
@@ -151,7 +152,7 @@ export function AppShell({ children, title }: AppShellProps) {
       {mobileOpen ? (
         <button
           type="button"
-          aria-label="Close menu"
+          aria-label="Cerrar menú"
           className="fixed inset-0 z-20 bg-black/50 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
@@ -164,7 +165,7 @@ export function AppShell({ children, title }: AppShellProps) {
             className="rounded-md border border-white/15 px-2.5 py-1.5 text-xs lg:hidden"
             onClick={() => setMobileOpen(true)}
           >
-            Menu
+            Menú
           </button>
           <h1 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
             {title ?? "OpsAI"}

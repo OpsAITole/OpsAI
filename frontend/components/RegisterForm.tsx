@@ -25,7 +25,7 @@ export function RegisterForm() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      setError(err instanceof Error ? err.message : "Error al registrarse");
     } finally {
       setPending(false);
     }
@@ -34,7 +34,7 @@ export function RegisterForm() {
   return (
     <form onSubmit={onSubmit} className="mt-8 space-y-5">
       <label className="block">
-        <span className="text-xs uppercase tracking-[0.16em] text-muted">Name</span>
+        <span className="text-xs uppercase tracking-[0.16em] text-muted">Nombre</span>
         <input
           type="text"
           required
@@ -45,7 +45,7 @@ export function RegisterForm() {
         />
       </label>
       <label className="block">
-        <span className="text-xs uppercase tracking-[0.16em] text-muted">Email</span>
+        <span className="text-xs uppercase tracking-[0.16em] text-muted">Correo</span>
         <input
           type="email"
           required
@@ -56,7 +56,7 @@ export function RegisterForm() {
         />
       </label>
       <label className="block">
-        <span className="text-xs uppercase tracking-[0.16em] text-muted">Password</span>
+        <span className="text-xs uppercase tracking-[0.16em] text-muted">Contraseña</span>
         <input
           type="password"
           required
@@ -73,12 +73,12 @@ export function RegisterForm() {
         disabled={pending}
         className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-background transition hover:brightness-110 disabled:opacity-60"
       >
-        {pending ? "Creating account…" : "Create account"}
+        {pending ? "Creando cuenta…" : "Crear cuenta"}
       </button>
       <p className="text-sm text-muted">
-        Already registered?{" "}
+        ¿Ya estás registrado?{" "}
         <Link href="/login" className="text-accent underline-offset-4 hover:underline">
-          Sign in
+          Entrar
         </Link>
       </p>
     </form>

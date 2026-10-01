@@ -11,6 +11,7 @@ import {
   logoutUser,
   type User,
 } from "@/lib/api";
+import { roleLabel } from "@/lib/labels";
 
 export function AuthPanel() {
   const [user, setUser] = useState<User | null>(null);
@@ -53,7 +54,7 @@ export function AuthPanel() {
   }
 
   if (loading) {
-    return <p className="text-sm text-muted">Checking session…</p>;
+    return <p className="text-sm text-muted">Comprobando sesión…</p>;
   }
 
   if (!user) {
@@ -63,13 +64,13 @@ export function AuthPanel() {
           href="/login"
           className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-background transition hover:brightness-110"
         >
-          Sign in
+          Entrar
         </Link>
         <Link
           href="/register"
           className="rounded-md border border-white/15 px-4 py-2 text-sm font-medium text-foreground transition hover:border-accent/50"
         >
-          Register
+          Registrarse
         </Link>
       </div>
     );
@@ -77,17 +78,17 @@ export function AuthPanel() {
 
   return (
     <div className="rounded-lg border border-white/10 bg-surface/80 px-5 py-4 backdrop-blur">
-      <p className="font-mono text-xs uppercase tracking-[0.16em] text-accent">Signed in</p>
+      <p className="font-mono text-xs uppercase tracking-[0.16em] text-accent">Sesión iniciada</p>
       <p className="mt-2 text-base font-medium text-foreground">{user.name}</p>
       <p className="mt-1 text-sm text-muted">
-        {user.email} · {user.role}
+        {user.email} · {roleLabel(user.role)}
       </p>
       <button
         type="button"
         onClick={() => void onLogout()}
         className="mt-4 rounded-md border border-white/15 px-3 py-1.5 text-sm text-foreground transition hover:border-danger/60 hover:text-danger"
       >
-        Log out
+        Cerrar sesión
       </button>
     </div>
   );

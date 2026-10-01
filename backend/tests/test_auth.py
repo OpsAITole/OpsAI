@@ -45,7 +45,7 @@ def test_register_login_me_logout(client: TestClient) -> None:
 
     logout = client.post("/api/v1/auth/logout", headers={"Authorization": f"Bearer {token}"})
     assert logout.status_code == 200
-    assert logout.json()["message"] == "Logged out"
+    assert logout.json()["message"] == "Sesión cerrada"
 
 
 def test_register_duplicate_email(client: TestClient) -> None:

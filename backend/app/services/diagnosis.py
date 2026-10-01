@@ -61,14 +61,14 @@ def _format_incident_context(incident: Incident) -> str:
     return "\n".join(
         [
             f"Ticket: {incident.ticket_number}",
-            f"Title: {incident.title}",
-            f"Description: {incident.description or '(empty)'}",
-            f"Status: {incident.status.value}",
-            f"Category: {incident.category.value}",
-            f"Priority: {incident.priority.value}",
-            f"Severity: {incident.severity.value}",
-            f"Affected service: {incident.affected_service or '(none)'}",
-            f"Affected system: {incident.affected_system or '(none)'}",
+            f"Título: {incident.title}",
+            f"Descripción: {incident.description or '(vacío)'}",
+            f"Estado: {incident.status.value}",
+            f"Categoría: {incident.category.value}",
+            f"Prioridad: {incident.priority.value}",
+            f"Severidad: {incident.severity.value}",
+            f"Servicio afectado: {incident.affected_service or '(ninguno)'}",
+            f"Sistema afectado: {incident.affected_system or '(ninguno)'}",
         ]
     )
 
@@ -116,7 +116,7 @@ def find_similar_incidents(db: Session, incident: Incident, *, limit: int = 5) -
 
 def _format_similar(similar: list[Incident]) -> str:
     if not similar:
-        return "None provided."
+        return "Ninguno."
     lines = []
     for inc in similar:
         lines.append(
@@ -154,7 +154,7 @@ def get_latest_analysis(db: Session, incident_id: UUID) -> IncidentAnalysisRead:
     if row is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No analysis saved for this incident yet",
+            detail="Todavía no hay un análisis guardado para este incidente",
         )
     return to_read(row)
 
@@ -183,12 +183,12 @@ def analyze_incident(db: Session, incident_id: UUID, user: User) -> IncidentAnal
     except ValidationError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="AI output failed schema validation",
+            detail="La salida de la IA no superó la validación del esquema",
         ) from exc
     except Exception as exc:  # noqa: BLE001 — map unexpected provider failures to safe client error
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="AI provider failed to produce a valid analysis",
+            detail="El proveedor de IA no ha podido generar un análisis válido",
         ) from exc
 
     try:
@@ -196,7 +196,7 @@ def analyze_incident(db: Session, incident_id: UUID, user: User) -> IncidentAnal
     except ValidationError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="AI output failed schema validation",
+            detail="La salida de la IA no superó la validación del esquema",
         ) from exc
 
     # Ensure similar_incidents only references provided tickets when possible

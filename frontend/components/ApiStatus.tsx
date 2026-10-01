@@ -22,12 +22,12 @@ export function ApiStatus() {
           setDetail(`${data.service} · v${data.version} · ${data.environment}`);
         } else {
           setState("offline");
-          setDetail(`Unexpected status: ${data.status}`);
+          setDetail(`Estado inesperado: ${data.status}`);
         }
       } catch (error) {
         if (cancelled) return;
         setState("offline");
-        setDetail(error instanceof Error ? error.message : "Unable to reach API");
+        setDetail(error instanceof Error ? error.message : "No se pudo contactar con la API");
       }
     }
 
@@ -41,10 +41,10 @@ export function ApiStatus() {
 
   const label =
     state === "loading"
-      ? "OpsAI API: checking…"
+      ? "API OpsAI: comprobando…"
       : state === "online"
-        ? "OpsAI API: online"
-        : "OpsAI API: offline";
+        ? "API OpsAI: en línea"
+        : "API OpsAI: fuera de línea";
 
   const tone =
     state === "online" ? "text-ok" : state === "offline" ? "text-danger" : "text-muted";

@@ -27,7 +27,7 @@ def login(payload: UserLogin, db: Annotated[Session, Depends(get_db)]) -> TokenR
 @router.post("/logout", response_model=MessageResponse)
 def logout(_user: CurrentUser) -> MessageResponse:
     """Client should discard the JWT. Stateless logout acknowledges the session end."""
-    return MessageResponse(message="Logged out")
+    return MessageResponse(message="Sesión cerrada")
 
 
 @router.get("/me", response_model=UserRead)
@@ -42,7 +42,7 @@ def me(user: CurrentUser) -> UserRead:
 def oauth_start(provider: str) -> OAuthProviderStub:
     return OAuthProviderStub(
         provider=provider,
-        detail=f"OAuth provider '{provider}' is not implemented yet",
+        detail=f"El proveedor OAuth '{provider}' aún no está implementado",
     )
 
 
@@ -54,5 +54,5 @@ def oauth_start(provider: str) -> OAuthProviderStub:
 def oauth_callback(provider: str) -> OAuthProviderStub:
     return OAuthProviderStub(
         provider=provider,
-        detail=f"OAuth callback for '{provider}' is not implemented yet",
+        detail=f"El callback OAuth de '{provider}' aún no está implementado",
     )

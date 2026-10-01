@@ -47,7 +47,7 @@ def decode_access_token(token: str) -> dict:
     except jwt.PyJWTError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
+            detail="Token no válido o caducado",
             headers={"WWW-Authenticate": "Bearer"},
         ) from exc
 
@@ -59,7 +59,7 @@ def get_current_user(
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
+            detail="No autenticado",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -68,7 +68,7 @@ def get_current_user(
     if not subject:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload",
+            detail="Payload del token no válido",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -77,7 +77,7 @@ def get_current_user(
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token subject",
+            detail="Sujeto del token no válido",
             headers={"WWW-Authenticate": "Bearer"},
         ) from exc
 
@@ -85,7 +85,7 @@ def get_current_user(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
+            detail="Usuario no encontrado",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user
@@ -100,7 +100,7 @@ def require_roles(*allowed: UserRole):
         if user.role not in allowed_set:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Role {user.role.value} is not permitted for this action",
+                detail=f"El rol {user.role.value} no está permitido para esta acción",
             )
         return user
 

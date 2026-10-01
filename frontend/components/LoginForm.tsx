@@ -23,7 +23,7 @@ export function LoginForm() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
     } finally {
       setPending(false);
     }
@@ -32,7 +32,7 @@ export function LoginForm() {
   return (
     <form onSubmit={onSubmit} className="mt-8 space-y-5">
       <label className="block">
-        <span className="text-xs uppercase tracking-[0.16em] text-muted">Email</span>
+        <span className="text-xs uppercase tracking-[0.16em] text-muted">Correo</span>
         <input
           type="email"
           required
@@ -43,7 +43,7 @@ export function LoginForm() {
         />
       </label>
       <label className="block">
-        <span className="text-xs uppercase tracking-[0.16em] text-muted">Password</span>
+        <span className="text-xs uppercase tracking-[0.16em] text-muted">Contraseña</span>
         <input
           type="password"
           required
@@ -60,12 +60,12 @@ export function LoginForm() {
         disabled={pending}
         className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-background transition hover:brightness-110 disabled:opacity-60"
       >
-        {pending ? "Signing in…" : "Sign in"}
+        {pending ? "Entrando…" : "Entrar"}
       </button>
       <p className="text-sm text-muted">
-        No account yet?{" "}
+        ¿Aún no tienes cuenta?{" "}
         <Link href="/register" className="text-accent underline-offset-4 hover:underline">
-          Register
+          Regístrate
         </Link>
       </p>
     </form>

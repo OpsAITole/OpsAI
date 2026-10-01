@@ -57,7 +57,7 @@ def build_timeline(incident: Incident, db: Session | None = None) -> list[Incide
         IncidentTimelineEvent(
             id=f"{incident.id}-created",
             type="created",
-            message=f"Incident {incident.ticket_number} opened",
+            message=f"Incidente {incident.ticket_number} abierto",
             at=incident.created_at,
         )
     ]
@@ -66,7 +66,7 @@ def build_timeline(incident: Incident, db: Session | None = None) -> list[Incide
             IncidentTimelineEvent(
                 id=f"{incident.id}-updated",
                 type="updated",
-                message=f"Status {incident.status.value} · priority {incident.priority.value}",
+                message=f"Estado {incident.status.value} · prioridad {incident.priority.value}",
                 at=incident.updated_at,
             )
         )
@@ -75,7 +75,7 @@ def build_timeline(incident: Incident, db: Session | None = None) -> list[Incide
             IncidentTimelineEvent(
                 id=f"{incident.id}-resolved",
                 type="resolved",
-                message="Incident marked resolved/closed",
+                message="Incidente marcado como resuelto/cerrado",
                 at=incident.resolved_at,
             )
         )
@@ -88,8 +88,8 @@ def build_timeline(incident: Incident, db: Session | None = None) -> list[Incide
                     id=str(analysis.id),
                     type="analyzed",
                     message=(
-                        f"AI analysis ({analysis.provider}) saved — "
-                        f"confidence {conf_pct}%. Assistance only; no production changes executed."
+                        f"Análisis IA ({analysis.provider}) guardado — "
+                        f"confianza {conf_pct}%. Solo asistencia; no se han ejecutado cambios en producción."
                     ),
                     at=analysis.created_at,
                 )
@@ -137,7 +137,7 @@ def create_incident(db: Session, payload: IncidentCreate, user: User) -> Inciden
 def get_incident(db: Session, incident_id: UUID) -> Incident:
     incident = incidents_repo.get_by_id(db, incident_id)
     if incident is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incident not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incidente no encontrado")
     return incident
 
 

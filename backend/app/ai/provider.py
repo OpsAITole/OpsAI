@@ -31,11 +31,11 @@ class AIProvider(ABC):
         lines = [
             result.summary,
             "",
-            f"Next best action: {result.next_best_action}",
-            f"Confidence: {result.confidence:.0%}",
+            f"Próxima mejor acción: {result.next_best_action}",
+            f"Confianza: {result.confidence:.0%}",
         ]
         if result.recommended_steps:
             lines.append("")
-            lines.append("Recommended steps:")
+            lines.append("Pasos recomendados:")
             lines.extend(f"- {step}" for step in result.recommended_steps)
         return "\n".join(lines)

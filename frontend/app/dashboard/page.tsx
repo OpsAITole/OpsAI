@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 
 import { AppShell } from "@/components/AppShell";
 import { ApiStatus } from "@/components/ApiStatus";
-import { listIncidents, type Incident } from "@/lib/api";
 import { PriorityBadge, StatusBadge } from "@/components/IncidentBadges";
+import { listIncidents, type Incident } from "@/lib/api";
 
 export default function DashboardPage() {
   const [recent, setRecent] = useState<Incident[]>([]);
@@ -24,7 +24,7 @@ export default function DashboardPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Could not load dashboard");
+          setError(err instanceof Error ? err.message : "No se pudo cargar el panel");
         }
       }
     }
@@ -35,22 +35,24 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <AppShell title="Dashboard">
+    <AppShell title="Panel">
       <div className="space-y-8">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">Overview</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">Resumen</p>
           <p className="mt-2 max-w-xl text-sm text-muted">
-            Lightweight operator home for Phase 3. Open incidents to triage; AI analysis lands in
-            Phase 4.
+            Inicio ligero para el operador. Abre incidentes para hacer triaje; el análisis con IA está
+            en el detalle de cada ticket.
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-lg border border-white/10 bg-surface/40 px-5 py-4">
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">Open tickets</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+              Tickets abiertos
+            </p>
             <p className="mt-2 text-3xl font-semibold text-foreground">{total}</p>
             <Link href="/incidents" className="mt-3 inline-block text-sm text-accent hover:underline">
-              View all incidents
+              Ver todos los incidentes
             </Link>
           </div>
           <div className="rounded-lg border border-white/10 bg-surface/40 px-5 py-4">
@@ -62,10 +64,10 @@ export default function DashboardPage() {
         </div>
 
         <section className="space-y-3">
-          <h2 className="text-sm font-medium text-foreground">Recent incidents</h2>
+          <h2 className="text-sm font-medium text-foreground">Incidentes recientes</h2>
           {error ? <p className="text-sm text-danger">{error}</p> : null}
           {recent.length === 0 && !error ? (
-            <p className="text-sm text-muted">No incidents yet.</p>
+            <p className="text-sm text-muted">Todavía no hay incidentes.</p>
           ) : (
             <ul className="divide-y divide-white/5 rounded-lg border border-white/10">
               {recent.map((incident) => (

@@ -8,7 +8,7 @@ type PageProps = {
 export default async function IncidentDetailPage({ params }: PageProps) {
   const { id } = await params;
   return (
-    <AppShell title="Incident detail">
+    <AppShell title="Detalle del incidente">
       <IncidentDetailView incidentId={id} />
     </AppShell>
   );

@@ -1,3 +1,5 @@
+import { priorityLabel, statusLabel } from "@/lib/labels";
+
 export function StatusBadge({ status }: { status: string }) {
   const tones: Record<string, string> = {
     NEW: "bg-sky-500/15 text-sky-300",
@@ -12,7 +14,7 @@ export function StatusBadge({ status }: { status: string }) {
         tones[status] ?? "bg-white/10 text-muted"
       }`}
     >
-      {status}
+      {statusLabel(status)}
     </span>
   );
 }
@@ -26,7 +28,7 @@ export function PriorityBadge({ priority }: { priority: string }) {
   };
   return (
     <span className={`font-mono text-xs uppercase tracking-wide ${tones[priority] ?? "text-muted"}`}>
-      {priority}
+      {priorityLabel(priority)}
     </span>
   );
 }

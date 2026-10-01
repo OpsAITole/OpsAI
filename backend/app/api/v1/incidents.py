@@ -106,7 +106,7 @@ def delete_incident(
     db: Annotated[Session, Depends(get_db)],
 ) -> MessageResponse:
     incidents_service.delete_incident(db, incident_id)
-    return MessageResponse(message="Incident deleted")
+    return MessageResponse(message="Incidente eliminado")
 
 
 @router.post(

@@ -15,7 +15,7 @@ def register_user(db: Session, payload: UserCreate) -> User:
     if existing is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Email already registered",
+            detail="Este correo ya está registrado",
         )
 
     # Public registration defaults to VIEWER. Elevated roles only for first-user bootstrap.
@@ -39,7 +39,7 @@ def authenticate_user(db: Session, payload: UserLogin) -> TokenResponse:
     if user is None or not verify_password(payload.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+            detail="Correo o contraseña incorrectos",
         )
 
     token = create_access_token(subject=str(user.id), role=user.role)

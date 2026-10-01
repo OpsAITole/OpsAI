@@ -85,7 +85,7 @@ class MessageResponse(BaseModel):
 class OAuthProviderStub(BaseModel):
     provider: str
     status: str = "not_implemented"
-    detail: str = "OAuth is stubbed for a later phase"
+    detail: str = "OAuth está aplazado a una fase posterior"
 
 
 # --- Incidents (Phase 3) ---

@@ -3,7 +3,7 @@ import { IncidentsBoard } from "@/components/IncidentsBoard";
 
 export default function IncidentsPage() {
   return (
-    <AppShell title="Incidents">
+    <AppShell title="Incidentes">
       <IncidentsBoard />
     </AppShell>
   );

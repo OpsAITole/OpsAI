@@ -8,9 +8,9 @@ export default function RegisterPage() {
       <Link href="/" className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
         OpsAI
       </Link>
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">Create account</h1>
+      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">Crear cuenta</h1>
       <p className="mt-2 text-sm text-muted">
-        Register as a VIEWER by default. Roles ADMIN / TECHNICIAN / VIEWER are enforced by the API.
+        Por defecto te registras como VIEWER. Los roles ADMIN / TECHNICIAN / VIEWER los aplica la API.
       </p>
       <RegisterForm />
     </main>

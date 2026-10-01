@@ -8,8 +8,8 @@ export default function LoginPage() {
       <Link href="/" className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
         OpsAI
       </Link>
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">Sign in</h1>
-      <p className="mt-2 text-sm text-muted">Access your OpsAI operator workspace.</p>
+      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">Iniciar sesión</h1>
+      <p className="mt-2 text-sm text-muted">Accede a tu espacio de operador OpsAI.</p>
       <LoginForm />
     </main>
   );

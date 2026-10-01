@@ -39,7 +39,7 @@ def _extract_json_object(text: str) -> dict[str, Any]:
         data = json.loads(cleaned[start : end + 1])
         if isinstance(data, dict):
             return data
-    raise AIProviderError("Model returned non-JSON output", status_code=502)
+    raise AIProviderError("El modelo ha devuelto una salida que no es JSON", status_code=502)
 
 
 class OpenAIProvider(AIProvider):
@@ -67,7 +67,7 @@ class OpenAIProvider(AIProvider):
         del kwargs
         if not self.api_key:
             raise AIProviderError(
-                "OpenAI provider is selected but AI_API_KEY is not configured",
+                "El proveedor OpenAI está seleccionado pero AI_API_KEY no está configurada",
                 status_code=503,
             )
 
@@ -80,8 +80,10 @@ class OpenAIProvider(AIProvider):
                 {
                     "role": "system",
                     "content": (
-                        "You are OpsAI. Return only valid JSON matching the requested schema. "
-                        "Assistance only — never claim production actions were executed."
+                        "Eres OpsAI. Devuelve únicamente JSON válido según el esquema solicitado. "
+                        "Responde en español (es-ES). Solo asistencia: nunca afirmes que se han "
+                        "ejecutado acciones en producción. Los enums de classification deben "
+                        "permanecer en inglés (VPN, HIGH, etc.)."
                     ),
                 },
                 {"role": "user", "content": prompt},
@@ -96,11 +98,11 @@ class OpenAIProvider(AIProvider):
             with httpx.Client(timeout=self.timeout) as client:
                 response = client.post(url, headers=headers, json=payload)
         except httpx.HTTPError as exc:
-            raise AIProviderError(f"OpenAI request failed: {exc}", status_code=502) from exc
+            raise AIProviderError(f"La petición a OpenAI ha fallado: {exc}", status_code=502) from exc
 
         if response.status_code >= 400:
             raise AIProviderError(
-                f"OpenAI API error ({response.status_code})",
+                f"Error de la API de OpenAI ({response.status_code})",
                 status_code=502,
             )
 
@@ -108,14 +110,16 @@ class OpenAIProvider(AIProvider):
             body = response.json()
             content = body["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError, ValueError) as exc:
-            raise AIProviderError("Unexpected OpenAI response shape", status_code=502) from exc
+            raise AIProviderError(
+                "Forma inesperada en la respuesta de OpenAI", status_code=502
+            ) from exc
 
         try:
             data = _extract_json_object(content if isinstance(content, str) else json.dumps(content))
             return IncidentAnalysisResult.model_validate(data)
         except (json.JSONDecodeError, ValidationError) as exc:
             raise AIProviderError(
-                "AI output failed schema validation",
+                "La salida de la IA no superó la validación del esquema",
                 status_code=422,
             ) from exc
 

@@ -1,8 +1,10 @@
 # OpsAI
 
-Intelligent IT operations assistant. The MVP is **assistance-only**: it can suggest actions, but it never auto-executes production changes.
+Asistente inteligente de operaciones IT. El MVP es **solo asistencia**: puede sugerir acciones, pero nunca ejecuta cambios en producción de forma automática.
 
-Phase 4 (AI) adds decoupled AI providers, structured incident diagnosis, persistence, and an **Analyze with AI** control on the incident detail page.
+La interfaz de usuario y las respuestas de asistencia IA están en **español (es-ES)**. El nombre de marca **OpsAI** se mantiene; los códigos de enum de API/BD (p. ej. `NEW`, `ADMIN`, `VPN`) permanecen en inglés.
+
+La fase 4 (IA) añade proveedores desacoplados, diagnóstico estructurado de incidentes, persistencia y el control **Analizar con IA** en el detalle del incidente.
 
 ## Quick start
 
@@ -24,7 +26,7 @@ docker compose up --build
 
 ## Stack
 
-- **frontend/** — Next.js (TypeScript, Tailwind) with SaaS shell (Dashboard, Incidents, Settings)
+- **frontend/** — Next.js (TypeScript, Tailwind) with SaaS shell (Panel, Incidentes, Ajustes)
 - **backend/** — FastAPI + Pydantic + SQLAlchemy (layered: `api`, `core`, `models`, `schemas`, `services`, `repositories`, `ai`)
 - **postgres** — PostgreSQL 16 via Compose
 - **docs/architecture.md** — architecture notes
@@ -58,7 +60,7 @@ TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
 # Create incident
 INC=$(curl -s -X POST http://localhost:8000/api/v1/incidents \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"title":"VPN down","description":"Users cannot connect","category":"VPN","priority":"HIGH","affected_service":"vpn-gw","affected_system":"edge"}')
+  -d '{"title":"VPN caída","description":"Los usuarios no pueden conectar","category":"VPN","priority":"HIGH","affected_service":"vpn-gw","affected_system":"edge"}')
 ID=$(echo "$INC" | python3 -c 'import sys,json; print(json.load(sys.stdin)["id"])')
 
 # Analyze with mock AI (TECHNICIAN/ADMIN)
@@ -70,7 +72,7 @@ curl -s "http://localhost:8000/api/v1/incidents/$ID/analysis" \
   -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
 ```
 
-Open http://localhost:3000 — sign in, open an incident, click **Analyze with AI**.
+Abre http://localhost:3000 — inicia sesión, abre un incidente y pulsa **Analizar con IA**.
 
 ## Tests
 
