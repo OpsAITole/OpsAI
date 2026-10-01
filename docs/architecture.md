@@ -1,8 +1,6 @@
-# OpsAI Architecture — Foundation (Phase 1)
+# OpsAI Architecture
 
 OpsAI is an intelligent IT operations assistant. The MVP is **assistance-only** and never auto-executes production changes.
-
-For the full Phase 1 architecture (data model, APIs, roadmap 1–12, decisions), see the project store document or the sections below.
 
 ## Stack
 
@@ -13,32 +11,27 @@ For the full Phase 1 architecture (data model, APIs, roadmap 1–12, decisions),
 | Database | PostgreSQL 16                                   |
 | Runtime  | Docker Compose (`frontend`, `backend`, `postgres`) |
 
-## Layout
+## Auth (Phase 2)
 
-```
-frontend/   backend/   database/   docs/   scripts/   docker/
-docker-compose.yml   .env.example   README.md
-```
+- Password hashing via bcrypt (`passlib`)
+- JWT access tokens (`PyJWT`, HS256)
+- Roles: `ADMIN`, `TECHNICIAN`, `VIEWER` with `require_roles(...)` dependency
+- OAuth routes exist as `501` stubs only
 
-Backend layers: `api/` → `services/` → `repositories/` → `models/`, plus `core/`, `schemas/`, and stub packages `ai/`, `rag/`.
+User model fields: `id`, `email`, `password_hash`, `name`, `role`, `created_at`, `updated_at`.
 
-## Key decisions
-
-- **Monorepo** — one Compose stack and coordinated changes.
-- **API versioning** — `/api/v1` prefix.
-- **SQLAlchemy + Alembic** — models and migrations folder ready; Phase 1 proves DB connectivity.
-- **AIProvider** — interface stub only; no fake AI.
-- **Security** — secrets via env, CORS allowlist, nothing sensitive in git.
-
-## Phase 1 endpoints
+## Endpoints
 
 | Path | Purpose |
 |------|---------|
 | `GET /health` | Liveness |
 | `GET /readiness` | DB readiness |
-| `GET /api/v1/status` | Product status for the frontend |
-
-Auth and incidents routes are stub contracts (`501`) for later phases.
+| `GET /api/v1/status` | Product status |
+| `POST /api/v1/auth/register` | Create user |
+| `POST /api/v1/auth/login` | Issue JWT |
+| `POST /api/v1/auth/logout` | Acknowledge logout |
+| `GET /api/v1/auth/me` | Current user |
+| `GET /api/v1/incidents*` | Protected stubs (Phase 3) |
 
 ## Roadmap (summary)
 

@@ -1,3 +1,5 @@
-"""Repository layer — data access boundary (stubs for Phase 1)."""
+"""Repository package exports."""
 
-# UserRepository / IncidentRepository will be implemented when CRUD ships.
+from app.repositories import users
+
+__all__ = ["users"]

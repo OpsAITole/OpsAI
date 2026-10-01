@@ -1,3 +1,0 @@
--- Optional PostgreSQL bootstrap hooks (extensions, etc.).
--- Phase 1 relies on Compose env vars for user/db creation.
-SELECT 1;

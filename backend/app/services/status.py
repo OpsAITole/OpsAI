@@ -10,6 +10,6 @@ class StatusService:
         return StatusResponse(
             service="OpsAI API",
             status="online",
-            version="0.1.0",
+            version="0.2.0",
             environment=settings.environment,
         )

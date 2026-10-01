@@ -7,18 +7,20 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import settings
-from app.core.database import check_db_connection
+from app.core.database import Base, check_db_connection, engine
+import app.models  # noqa: F401 — register metadata
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    Base.metadata.create_all(bind=engine)
     yield
 
 
 app = FastAPI(
     title="OpsAI API",
     description="Intelligent IT operations assistant (assistance-only MVP).",
-    version="0.1.0",
+    version="0.2.0",
     lifespan=lifespan,
 )
 

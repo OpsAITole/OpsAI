@@ -1,4 +1,4 @@
-"""Pydantic schemas — Phase 1 status + future auth/incident contracts."""
+"""Pydantic schemas for OpsAI API contracts."""
 
 from datetime import datetime
 from uuid import UUID
@@ -11,26 +11,32 @@ from app.models import IncidentSeverity, IncidentStatus, UserRole
 class StatusResponse(BaseModel):
     service: str = "OpsAI API"
     status: str = "online"
-    version: str = "0.1.0"
+    version: str = "0.2.0"
     environment: str
 
 
-# --- Future auth contracts (schemas only; endpoints return 501) ---
+# --- Auth ---
 
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8)
-    full_name: str | None = None
+    password: str = Field(min_length=8, max_length=128)
+    name: str = Field(min_length=1, max_length=255)
+    role: UserRole = UserRole.VIEWER
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=128)
 
 
 class UserRead(BaseModel):
     id: UUID
     email: EmailStr
-    full_name: str | None
+    name: str
     role: UserRole
-    is_active: bool
     created_at: datetime
+    updated_at: datetime
 
     model_config = {"from_attributes": True}
 
@@ -38,9 +44,20 @@ class UserRead(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    user: UserRead
 
 
-# --- Future incident contracts ---
+class MessageResponse(BaseModel):
+    message: str
+
+
+class OAuthProviderStub(BaseModel):
+    provider: str
+    status: str = "not_implemented"
+    detail: str = "OAuth is stubbed for a later phase"
+
+
+# --- Incidents (Phase 3 contracts) ---
 
 
 class IncidentCreate(BaseModel):

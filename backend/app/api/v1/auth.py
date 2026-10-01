@@ -1,22 +1,58 @@
-"""Auth route stubs — future contracts (Phase 2+)."""
+"""Auth routes — register, login, logout, me, and OAuth stubs."""
 
-from fastapi import APIRouter, HTTPException, status
+from typing import Annotated
 
-from app.schemas import TokenResponse, UserCreate, UserRead
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.orm import Session
+
+from app.core.database import get_db
+from app.core.security import CurrentUser
+from app.schemas import MessageResponse, OAuthProviderStub, TokenResponse, UserCreate, UserLogin, UserRead
+from app.services import auth as auth_service
 
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserRead, status_code=status.HTTP_501_NOT_IMPLEMENTED)
-def register(_payload: UserCreate) -> None:
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Auth not implemented in Phase 1")
+@router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+def register(payload: UserCreate, db: Annotated[Session, Depends(get_db)]) -> UserRead:
+    user = auth_service.register_user(db, payload)
+    return auth_service.user_to_read(user)
 
 
-@router.post("/login", response_model=TokenResponse, status_code=status.HTTP_501_NOT_IMPLEMENTED)
-def login(_payload: UserCreate) -> None:
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Auth not implemented in Phase 1")
+@router.post("/login", response_model=TokenResponse)
+def login(payload: UserLogin, db: Annotated[Session, Depends(get_db)]) -> TokenResponse:
+    return auth_service.authenticate_user(db, payload)
 
 
-@router.get("/me", response_model=UserRead, status_code=status.HTTP_501_NOT_IMPLEMENTED)
-def me() -> None:
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Auth not implemented in Phase 1")
+@router.post("/logout", response_model=MessageResponse)
+def logout(_user: CurrentUser) -> MessageResponse:
+    """Client should discard the JWT. Stateless logout acknowledges the session end."""
+    return MessageResponse(message="Logged out")
+
+
+@router.get("/me", response_model=UserRead)
+def me(user: CurrentUser) -> UserRead:
+    return auth_service.user_to_read(user)
+
+
+# --- OAuth stubs (no implementation in Phase 2) ---
+
+
+@router.get("/oauth/{provider}", response_model=OAuthProviderStub, status_code=status.HTTP_501_NOT_IMPLEMENTED)
+def oauth_start(provider: str) -> OAuthProviderStub:
+    return OAuthProviderStub(
+        provider=provider,
+        detail=f"OAuth provider '{provider}' is not implemented yet",
+    )
+
+
+@router.get(
+    "/oauth/{provider}/callback",
+    response_model=OAuthProviderStub,
+    status_code=status.HTTP_501_NOT_IMPLEMENTED,
+)
+def oauth_callback(provider: str) -> OAuthProviderStub:
+    return OAuthProviderStub(
+        provider=provider,
+        detail=f"OAuth callback for '{provider}' is not implemented yet",
+    )

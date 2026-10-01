@@ -1,20 +1,19 @@
-"""SQLAlchemy models for OpsAI (Phase 1 — schema readiness)."""
+"""SQLAlchemy models for OpsAI."""
 
 import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Text, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
 
 class UserRole(str, enum.Enum):
-    admin = "admin"
-    operator = "operator"
-    viewer = "viewer"
+    ADMIN = "ADMIN"
+    TECHNICIAN = "TECHNICIAN"
+    VIEWER = "VIEWER"
 
 
 class IncidentStatus(str, enum.Enum):
@@ -34,12 +33,15 @@ class IncidentSeverity(str, enum.Enum):
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
-    full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="user_role"), default=UserRole.operator)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole, name="user_role", native_enum=False, length=32),
+        default=UserRole.VIEWER,
+        nullable=False,
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -56,23 +58,25 @@ class User(Base):
 class Incident(Base):
     __tablename__ = "incidents"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     status: Mapped[IncidentStatus] = mapped_column(
-        Enum(IncidentStatus, name="incident_status"), default=IncidentStatus.open
+        Enum(IncidentStatus, name="incident_status", native_enum=False, length=32),
+        default=IncidentStatus.open,
     )
     severity: Mapped[IncidentSeverity] = mapped_column(
-        Enum(IncidentSeverity, name="incident_severity"), default=IncidentSeverity.medium
+        Enum(IncidentSeverity, name="incident_severity", native_enum=False, length=32),
+        default=IncidentSeverity.medium,
     )
     source: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_by_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+        Uuid(as_uuid=True), ForeignKey("users.id"), nullable=True
     )
     assigned_to_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+        Uuid(as_uuid=True), ForeignKey("users.id"), nullable=True
     )
-    # Reserved for future AI analysis — unused in Phase 1
+    # Reserved for future AI analysis — unused until later phases
     ai_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
